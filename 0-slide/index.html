@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>1</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            span,
+            button {
+                position: absolute;
+                font-size: 2vw;
+            }
+
+            span {
+                top: 5vh;
+                right: 5vw;
+                max-width: 50vw;
+                word-wrap: break-word;
+                text-shadow: 1px 1px white;
+                text-align: right;
+            }
+
+            button {
+                top: 5vh;
+                left: 5vw;
+            }
+
+            img,
+            iframe {
+                width: 100vw;
+                height: 100vh;
+                object-fit: contain;
+                display: none;
+                border: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <button>>>>></button>
+        <span></span>
+        <img src="" />
+        <iframe src=""></iframe>
+        <script>
+            const text = `test 10 9 8 7 6 5 4 3 2 1
+                hello my name is leonard i want to show you a few things i have done
+                https://leonat.de/cursors
+                end
+                `
+                .split(" ")
+                .filter((word) => word !== "");
+            let index = 0;
+            const span = document.querySelector("span");
+            const img = document.querySelector("img");
+            const iframe = document.querySelector("iframe");
+            const button = document.querySelector("button");
+            console.log("test", img);
+            async function updateWord() {
+                if (index >= text.length) return;
+                console.log("click");
+                const currentWord = text[index];
+                index++;
+                span.innerHTML = currentWord;
+                if (currentWord.startsWith("https://")) {
+                    img.style.display = "none";
+                    iframe.style.display = "block";
+                    iframe.setAttribute("src", currentWord);
+                } else {
+                    img.style.display = "block";
+                    iframe.style.display = "none";
+                    const req = await fetch(
+                        `http://localhost:8080/${currentWord}`
+                    );
+                    const {imgUrl, searchUrl} = await req.json();
+                    span.innerHTML = `${currentWord}: ${searchUrl}`;
+                    img.setAttribute("src", imgUrl);
+                }
+            }
+            button.addEventListener("click", () => {
+                updateWord();
+            });
+        </script>
+    </body>
+</html>
