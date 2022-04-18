@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>1</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            span,
+            button {
+                position: absolute;
+                font-size: 1vw;
+                z-index: 2;
+            }
+
+            span.word {
+                top: 50vh;
+                left: 50vw;
+                transform: translate(-50%, -50%);
+                max-width: 50vw;
+                background: orange;
+                font-size: 3vw;
+            }
+
+            span.url {
+                bottom: 5vh;
+                right: 5vw;
+                background: lightblue;
+            }
+
+            span {
+                padding: 0.5em;
+                word-wrap: break-word;
+                text-shadow: 1px 1px white;
+                text-align: center;
+                border-radius: 100%;
+            }
+
+            button.next {
+                top: 5vh;
+                left: 9em;
+            }
+            button.prev {
+                top: 5vh;
+                left: 5em;
+            }
+
+            .img-container,
+            iframe,
+            video,
+            img {
+                width: 100vw;
+                height: 100vh;
+                display: none;
+                border: none;
+            }
+
+            .img-container {
+                font-size: 0;
+            }
+
+            img {
+                object-fit: contain;
+
+            }
+
+            .img-container > img {
+                width: 50%;
+                display: inline-block;
+                height: 50%;
+                opacity: 1;
+                transition: opacity 0.3s ;
+            }
+
+            .img-container > img[src=""] {
+                opacity: 0;
+                width: 1px;
+                height: 1px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <button class="prev">&lt;&lt;&lt;&lt;</button>
+        <button class="next">>>>></button>
+        <span class="word"></span>
+        <span class="url"></span>
+        <div class="img-container">
+            <img src="" />
+            <img src="" />
+            <img src="" />
+            <img src="" />
+        </div>
+        <video autoplay src=""></video>
+        <img class="single-image" src="" />
+        <iframe src=""></iframe>
+        <script>
+            const text = `test
+10
+9
+8
+7
+6
+5
+4
+3
+2
+1
+hallo
+ich
+bin
+leonard puhl
+ich untersuche das web
+nach möglichenkeiten 
+der künstlerischen intervention
+ich habe mich 
+zum beispiel
+mit cursorn 
+beschäftigt
+https://leonat.de/cursors
+ich habe auch eine plattform
+für synchrone abstimmung 
+entwickelt
+/videos/livot.m4v
+/images/vote_mobile.png
+/images/vote_desktop.png
+die leider grade offline ist
+punkt
+wenn ihr es noch nicht gemerkt habt:
+diese website googlet grade
+die sätze die ihr hier abgebildet sind
+und zeigt die ersten
+4 suchergebnisse an
+dabei habe ich mich
+von einer älteren arbeit
+inspirieren lassen
+http://numbers.by.leonat.de
+seit einer weile
+beschäftige ich mich
+mit audio synthese
+und habe
+einen esoterischen synthesizer
+programmiert
+/videos/neurosynth.mov
+/images/neurosynth.png
+in zukunft
+möchte ich gerne beide interessengebiete
+miteinander verbinden
+danke`
+                .split(/\r?\n/)
+                .filter((word) => word !== "");
+            let index = parseInt(window.location.hash?.substr(1) || 0);
+            console.log(index);
+            const spanWord = document.querySelector("span.word");
+            const spanUrl = document.querySelector("span.url");
+            const video = document.querySelector("video");
+            const imgContainer = document.querySelector(".img-container");
+            const singleImage = document.querySelector("img.single-image");
+            const images = document.querySelectorAll(".img-container > img");
+            const iframe = document.querySelector("iframe");
+            const buttonNext = document.querySelector("button.next");
+            const buttonPrev = document.querySelector("button.prev");
+            updateWord(0);
+            async function updateWord(step) {
+                if (index + step >= text.length) return;
+                index += step;
+                window.location.hash = index;
+                const currentWord = text[index];
+                if (currentWord?.startsWith("http")) {
+                    imgContainer.style.display = "none";
+                    iframe.style.display = "block";
+                    spanWord.style.display = "none";
+                    video.style.display = "none";
+                    singleImage.style.display = "none";
+                    spanUrl.innerHTML = currentWord;
+                    iframe.setAttribute("src", currentWord);
+                    video.setAttribute("src", "");
+                    singleImage.setAttribute("src", "");
+                    images.forEach((img, index) => img.setAttribute("src", ""));
+                } else if (currentWord?.startsWith("/videos")) {
+                    imgContainer.style.display = "none";
+                    iframe.style.display = "none";
+                    spanWord.style.display = "none";
+                    video.style.display = "block"; 
+                    singleImage.style.display = "none";
+                    spanUrl.innerHTML = currentWord;
+                    video.setAttribute("src", currentWord);
+                    singleImage.setAttribute("src", "");
+                    iframe.setAttribute("src", "");
+                } else if (currentWord?.startsWith("/images")) {
+                    imgContainer.style.display = "none";
+                    iframe.style.display = "none";
+                    spanWord.style.display = "none";
+                    video.style.display = "none";
+                    singleImage.style.display = "block";
+                    spanUrl.innerHTML = currentWord;
+                    video.setAttribute("src", "");
+                    iframe.setAttribute("src", "");
+                    singleImage.setAttribute("src", currentWord);
+                } else {
+                    spanWord.innerHTML = currentWord;
+                    video.setAttribute("src", "");
+                    iframe.setAttribute("src", "");
+                    singleImage.setAttribute("src", "");
+                    imgContainer.style.display = "block";
+                    iframe.style.display = "none";
+                    spanWord.style.display = "block";
+                    video.style.display = "none";
+                    singleImage.style.display = "none";
+                    images.forEach((img, index) => img.setAttribute("src", ""));
+                    const req = await fetch(
+                        `http://localhost:8080/${currentWord}`
+                    );
+                    const { imgUrls, searchUrl } = await req.json();
+                    images.forEach((img, index) =>
+                        img.setAttribute("src", imgUrls[index])
+                    );
+                    spanUrl.innerHTML = `${searchUrl}`;
+                }
+            }
+            buttonPrev.addEventListener("click", () => {
+                updateWord(-1);
+            });
+            buttonNext.addEventListener("click", () => {
+                updateWord(+1);
+            });
+        </script>
+    </body>
+</html>
