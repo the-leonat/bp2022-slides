@@ -17,7 +17,7 @@ class MyServer(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(bytes(json.dumps(
-            {"imgUrl": result[0], "searchUrl": result[1]}, indent=4), "utf-8"))
+            {"imgUrls": result[0], "searchUrl": result[1]}, indent=4), "utf-8"))
 
     def get_google_img(self, query):
         """
@@ -33,11 +33,13 @@ class MyServer(BaseHTTPRequestHandler):
         html = requests.get(url, headers=headers).text
 
         soup = BeautifulSoup(html, 'html.parser')
-        image = soup.find("img", {"class": "yWs4tf"})
-
-        if not image:
+        image_set = soup.find_all("img", {"class": "yWs4tf"})
+        if not image_set:
             return ("notfound", "notfound")
-        return (image['src'], url)
+        del image_set[4:]
+        image_set = [item['src'] for item in image_set]
+
+        return (image_set, url)
 
 
 if __name__ == "__main__":

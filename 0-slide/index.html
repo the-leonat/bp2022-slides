@@ -18,73 +18,120 @@
                 font-size: 2vw;
             }
 
-            span {
+            span.word {
                 top: 5vh;
                 right: 5vw;
                 max-width: 50vw;
+                background: orange;
+
+            }
+
+            span.url {
+                bottom: 5vh;
+                right: 5vw;
+                background: lightblue;
+            }
+
+            span {
+                padding: 1vw;
                 word-wrap: break-word;
                 text-shadow: 1px 1px white;
                 text-align: right;
+                border-radius: 100%;
             }
 
-            button {
+            button.next {
+                top: 5vh;
+                left: 12vw;
+            }
+            button.prev {
                 top: 5vh;
                 left: 5vw;
             }
 
-            img,
+            .img-container,
             iframe {
                 width: 100vw;
                 height: 100vh;
-                object-fit: contain;
                 display: none;
                 border: none;
+            }
+
+            .img-container {
+                font-size: 0;
+            }
+
+            img {
+                width: 50%;
+                display: inline-block;
+                height: 50%;
+                object-fit: contain;
             }
         </style>
     </head>
 
     <body>
-        <button>>>>></button>
-        <span></span>
-        <img src="" />
+        <button class="prev">&lt;&lt;&lt;&lt;</button>
+        <button class="next">>>>></button>
+        <span class="word"></span>
+        <span class="url"></span>
+        <div class="img-container">
+            <img src="" />
+            <img src="" />
+            <img src="" />
+            <img src="" />
+        </div>
         <iframe src=""></iframe>
         <script>
             const text = `test 10 9 8 7 6 5 4 3 2 1
                 hello my name is leonard i want to show you a few things i have done
+                http://numbers.by.leonat.de
                 https://leonat.de/cursors
                 end
                 `
                 .split(" ")
                 .filter((word) => word !== "");
-            let index = 0;
-            const span = document.querySelector("span");
-            const img = document.querySelector("img");
+            let index =  parseInt(window.location.hash?.substr(1) || 0);
+            console.log(index)
+            const spanWord = document.querySelector("span.word");
+            const spanUrl = document.querySelector("span.url");
+
+            const imgContainer = document.querySelector(".img-container");
+            const images = document.querySelectorAll("img");
             const iframe = document.querySelector("iframe");
-            const button = document.querySelector("button");
-            console.log("test", img);
-            async function updateWord() {
-                if (index >= text.length) return;
-                console.log("click");
+            const buttonNext = document.querySelector("button.next");
+            const buttonPrev = document.querySelector("button.prev");
+            updateWord(0);
+            async function updateWord(step) {
+                if (index + step >= text.length) return;
+                index += step;
+                window.location.hash = index;
                 const currentWord = text[index];
-                index++;
-                span.innerHTML = currentWord;
-                if (currentWord.startsWith("https://")) {
-                    img.style.display = "none";
+                if (currentWord?.startsWith("http")) {
+                    imgContainer.style.display = "none";
                     iframe.style.display = "block";
+                    spanWord.style.display = "none";
+                    spanUrl.innerHTML = currentWord;
                     iframe.setAttribute("src", currentWord);
+                    images.forEach((img, index) => img.setAttribute("src", ""))
                 } else {
-                    img.style.display = "block";
+                    imgContainer.style.display = "block";
                     iframe.style.display = "none";
+                    spanWord.style.display = "block";
                     const req = await fetch(
                         `http://localhost:8080/${currentWord}`
                     );
-                    const {imgUrl, searchUrl} = await req.json();
-                    span.innerHTML = `${currentWord}: ${searchUrl}`;
-                    img.setAttribute("src", imgUrl);
+                    const { imgUrls, searchUrl } = await req.json();
+                    images.forEach((img, index) => img.setAttribute("src", imgUrls[index]))
+                    spanUrl.innerHTML = `${searchUrl}`;  
+                    spanWord.innerHTML = currentWord;
                 }
             }
-            button.addEventListener("click", () => {
-                updateWord();
+            buttonPrev.addEventListener("click", () => {
+                updateWord(-1);
+            });
+            buttonNext.addEventListener("click", () => {
+                updateWord(+1);
             });
         </script>
     </body>
